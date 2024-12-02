@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, ɵsetAlternateWeakRefImpl } from '@angular/core';
 import {transition, trigger, useAnimation} from "@angular/animations";
-import { fadeIn, fadeOut, headShake, jello, pulse, shakeX, wobble, zoomIn } from 'ng-animate';
+import { bounce, fadeIn, fadeOut, flip, headShake, jello, pulse, shakeX, wobble, zoomIn } from 'ng-animate';
+import { last, lastValueFrom, timer } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -8,13 +9,22 @@ import { fadeIn, fadeOut, headShake, jello, pulse, shakeX, wobble, zoomIn } from
   styleUrls: ['./app.component.css'],
   animations:[
     trigger('death', [transition(':increment', useAnimation(shakeX, {
-      params: {timing: 1}
+      params: {timing: 0.5}
     }))]),
     trigger('preAttack', [transition(':increment', useAnimation(jello, {
       params: {timing:0.5}
     }))]),
     trigger('attack', [transition(':increment', useAnimation(pulse, {
       params: {timing:0.2, scale: 4.5}
+    }))]),
+    trigger('bounce', [transition(':increment', useAnimation(bounce, {
+      params: {timing:1}
+    }))]),
+    trigger('shake', [transition(':increment', useAnimation(shakeX, {
+      params: {timing:0.75}
+    }))]),
+    trigger('flip', [transition(':increment', useAnimation(flip, {
+      params: {timing:0.75}
     }))])
   ]
 })
@@ -24,7 +34,14 @@ export class AppComponent {
   ng_death = 0
   ng_preAttack = 0
   ng_attack = 0
+  ng_bounce = 0
+  ng_shake = 0
+  ng_flip = 0
+
+  rotate_center = false
+  rotate_hor_top = false
   css_hit = false
+  isITSactive = false
   constructor() {
   }
 
@@ -72,5 +89,52 @@ export class AppComponent {
     setTimeout(() => {
       this.css_hit = false
     }, 200);
+  }
+
+  async BSF(){
+    this.ng_bounce++
+
+    await lastValueFrom(timer(1000))
+
+    this.ng_shake++
+    await lastValueFrom(timer(750))
+
+    this.ng_flip++
+    await lastValueFrom(timer(750))
+  }
+
+  ITS(){
+    if(this.isITSactive){
+      this.double()
+    }
+  }
+
+  double(){
+    if(this.isITSactive){
+      this.rotate_center = true
+      setTimeout(() => {
+        this.rotate_center = false;
+        this.top()
+      }, 1000);
+    }
+  }
+
+  top(){
+    if(this.isITSactive){
+      this.rotate_hor_top = true
+      setTimeout(() => {
+        this.rotate_hor_top = false
+        this.double()
+      }, 1000);
+    }
+  }
+
+  startIts(){
+    this.isITSactive = true
+    this.ITS()
+  }
+
+  stopITS(){
+    this.isITSactive = false
   }
 }
